@@ -5,89 +5,81 @@ import { SearchBar } from "@/components/SearchBar";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Grid, Layout } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
-// Mock data for demonstration
-const mockBookmarks = [
-  {
-    id: "1",
-    url: "https://example.com/wireless-headphones",
-    title: "Premium Wireless Noise-Cancelling Headphones",
-    description: "Experience crystal-clear audio with active noise cancellation technology. Perfect for travel, work, and daily listening.",
-    image_url: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=300&fit=crop",
-    price: 249.99,
-    currency: "USD",
-    domain: "example.com",
-    tags: ["electronics", "audio", "wireless"],
-  },
-  {
-    id: "2",
-    url: "https://shop.example.com/smart-watch",
-    title: "Smart Fitness Watch with Health Monitoring",
-    description: "Track your fitness goals with this advanced smartwatch featuring heart rate monitoring, GPS, and 7-day battery life.",
-    image_url: "https://images.unsplash.com/photo-1544117519-31a4b719223d?w=400&h=500&fit=crop",
-    price: 199.99,
-    currency: "USD",
-    domain: "shop.example.com",
-    tags: ["wearables", "fitness", "health"],
-  },
-  {
-    id: "3",
-    url: "https://store.example.com/laptop-stand",
-    title: "Adjustable Aluminum Laptop Stand",
-    description: "Ergonomic laptop stand made from premium aluminum. Improves posture and reduces neck strain during long work sessions.",
-    image_url: "https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?w=400&h=350&fit=crop",
-    price: 79.99,
-    currency: "USD",
-    domain: "store.example.com",
-    tags: ["office", "ergonomic", "accessories"],
-  },
-  {
-    id: "4",
-    url: "https://fashion.example.com/winter-coat",
-    title: "Sustainable Winter Coat",
-    description: "Stay warm and stylish with this eco-friendly winter coat made from recycled materials. Water-resistant and ethically produced.",
-    image_url: "https://images.unsplash.com/photo-1551028719-00167b16eac5?w=400&h=600&fit=crop",
-    price: 159.99,
-    currency: "USD",
-    domain: "fashion.example.com",
-    tags: ["clothing", "sustainable", "winter"],
-  },
-  {
-    id: "5",
-    url: "https://tech.example.com/mechanical-keyboard",
-    title: "RGB Mechanical Gaming Keyboard",
-    description: "Professional gaming keyboard with Cherry MX switches, customizable RGB lighting, and programmable macros.",
-    image_url: "https://images.unsplash.com/photo-1541140532154-b024d705b90a?w=400&h=250&fit=crop",
-    price: 129.99,
-    currency: "USD",
-    domain: "tech.example.com",
-    tags: ["gaming", "peripherals", "mechanical"],
-  },
-  {
-    id: "6",
-    url: "https://home.example.com/coffee-maker",
-    title: "Premium Espresso Coffee Machine",
-    description: "Brew café-quality espresso at home with this professional-grade coffee machine. Features precise temperature control and steam wand.",
-    image_url: "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=400&h=450&fit=crop",
-    price: 399.99,
-    currency: "USD",
-    domain: "home.example.com",
-    tags: ["kitchen", "coffee", "appliances"],
-  },
-];
+interface Bookmark {
+  id: string;
+  url: string;
+  title: string | null;
+  description: string | null;
+  image_url: string | null;
+  price: number | null;
+  currency: string | null;
+  domain: string | null;
+  tags: string[] | null;
+  created_at: string;
+  updated_at: string;
+}
 
 const Index = () => {
-  const [bookmarks, setBookmarks] = useState(mockBookmarks);
-  const [filteredBookmarks, setFilteredBookmarks] = useState(mockBookmarks);
+  const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
+  const [filteredBookmarks, setFilteredBookmarks] = useState<Bookmark[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<"masonry" | "grid">("masonry");
+  const { toast } = useToast();
 
   // Get all available tags
   const availableTags = Array.from(
     new Set(bookmarks.flatMap(bookmark => bookmark.tags || []))
   ).sort();
+
+  // Fetch bookmarks from Supabase
+  const fetchBookmarks = async () => {
+    setLoading(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        setBookmarks([]);
+        setLoading(false);
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from('bookmarks')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching bookmarks:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load bookmarks.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      setBookmarks(data || []);
+    } catch (error) {
+      console.error('Error fetching bookmarks:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load bookmarks.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Load bookmarks on component mount
+  useEffect(() => {
+    fetchBookmarks();
+  }, []);
 
   // Filter bookmarks based on search and tags
   useEffect(() => {
@@ -112,22 +104,56 @@ const Index = () => {
       );
     }
 
-    setFilteredBookmarks(filtered);
+    // Add price similarity indicator
+    const filteredWithPriceInfo = filtered.map(bookmark => {
+      if (bookmark.price) {
+        const similarPriceItems = bookmarks.filter(b => 
+          b.id !== bookmark.id && 
+          b.price && 
+          Math.abs(b.price - bookmark.price!) <= bookmark.price! * 0.2 // Within 20% price range
+        );
+        return { ...bookmark, similarPriceCount: similarPriceItems.length };
+      }
+      return bookmark;
+    });
+
+    setFilteredBookmarks(filteredWithPriceInfo);
   }, [bookmarks, searchQuery, selectedTags]);
 
-  // Simulate loading
-  useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 1000);
-    return () => clearTimeout(timer);
-  }, []);
-
   const handleBookmarkAdded = () => {
-    // In real implementation, this would refetch data
-    console.log("Bookmark added, should refetch data");
+    fetchBookmarks(); // Refetch data when new bookmark is added
   };
 
-  const handleDeleteBookmark = (id: string) => {
-    setBookmarks(prev => prev.filter(bookmark => bookmark.id !== id));
+  const handleDeleteBookmark = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('bookmarks')
+        .delete()
+        .eq('id', id);
+
+      if (error) {
+        console.error('Error deleting bookmark:', error);
+        toast({
+          title: "Error",
+          description: "Failed to delete bookmark.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      setBookmarks(prev => prev.filter(bookmark => bookmark.id !== id));
+      toast({
+        title: "Bookmark deleted",
+        description: "Bookmark has been removed successfully.",
+      });
+    } catch (error) {
+      console.error('Error deleting bookmark:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete bookmark.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleEditBookmark = (id: string) => {
@@ -241,6 +267,7 @@ const Index = () => {
                 {...bookmark}
                 onDelete={handleDeleteBookmark}
                 onEdit={handleEditBookmark}
+                similarPriceCount={(bookmark as any).similarPriceCount}
               />
             ))}
           </div>

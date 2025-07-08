@@ -20,6 +20,7 @@ interface BookmarkCardProps {
   currency?: string;
   domain?: string;
   tags?: string[];
+  similarPriceCount?: number;
   onDelete?: (id: string) => void;
   onEdit?: (id: string) => void;
 }
@@ -34,6 +35,7 @@ export function BookmarkCard({
   currency = "USD",
   domain,
   tags,
+  similarPriceCount,
   onDelete,
   onEdit,
 }: BookmarkCardProps) {
@@ -107,14 +109,22 @@ export function BookmarkCard({
       <div className="p-4">
         {/* Price */}
         {price && (
-          <div className="flex items-center gap-2 mb-3">
-            <span className="text-2xl font-bold text-primary">
-              {formatPrice(price, currency)}
-            </span>
-            <div className="flex items-center gap-1 text-xs text-muted-foreground">
-              <TrendingDown className="h-3 w-3 text-green-500" />
-              <span>Track price</span>
+          <div className="flex flex-col gap-1 mb-3">
+            <div className="flex items-center gap-2">
+              <span className="text-2xl font-bold text-primary">
+                {formatPrice(price, currency)}
+              </span>
+              <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                <TrendingDown className="h-3 w-3 text-green-500" />
+                <span>Track price</span>
+              </div>
             </div>
+            {similarPriceCount && similarPriceCount > 0 && (
+              <div className="flex items-center gap-1 text-xs text-blue-600">
+                <TrendingUp className="h-3 w-3" />
+                <span>{similarPriceCount} similar price{similarPriceCount > 1 ? 's' : ''} found</span>
+              </div>
+            )}
           </div>
         )}
 

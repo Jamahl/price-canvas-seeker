@@ -14,6 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Plus, X, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface AddBookmarkDialogProps {
   onBookmarkAdded?: () => void;
@@ -66,9 +67,37 @@ export function AddBookmarkDialog({ onBookmarkAdded }: AddBookmarkDialogProps) {
     setLoading(true);
 
     try {
-      // TODO: Add Supabase integration here
-      // For now, we'll simulate the save
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        toast({
+          title: "Authentication required",
+          description: "Please sign in to save bookmarks.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const domain = extractDomainFromUrl(url);
+      const priceValue = price ? parseFloat(price) : null;
+
+      const { error } = await supabase
+        .from('bookmarks')
+        .insert({
+          url: url.trim(),
+          title: title.trim() || null,
+          description: description.trim() || null,
+          price: priceValue,
+          currency: currency,
+          domain: domain,
+          tags: tags.length > 0 ? tags : null,
+          user_id: user.id,
+        });
+
+      if (error) {
+        console.error('Error saving bookmark:', error);
+        throw error;
+      }
       
       toast({
         title: "Bookmark saved!",
@@ -87,6 +116,7 @@ export function AddBookmarkDialog({ onBookmarkAdded }: AddBookmarkDialogProps) {
       
       onBookmarkAdded?.();
     } catch (error) {
+      console.error('Error saving bookmark:', error);
       toast({
         title: "Error",
         description: "Failed to save bookmark. Please try again.",
