@@ -14,7 +14,83 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      bookmarks: {
+        Row: {
+          created_at: string
+          currency: string | null
+          description: string | null
+          domain: string | null
+          id: string
+          image_url: string | null
+          price: number | null
+          tags: string[] | null
+          title: string | null
+          updated_at: string
+          url: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          currency?: string | null
+          description?: string | null
+          domain?: string | null
+          id?: string
+          image_url?: string | null
+          price?: number | null
+          tags?: string[] | null
+          title?: string | null
+          updated_at?: string
+          url: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          currency?: string | null
+          description?: string | null
+          domain?: string | null
+          id?: string
+          image_url?: string | null
+          price?: number | null
+          tags?: string[] | null
+          title?: string | null
+          updated_at?: string
+          url?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      price_history: {
+        Row: {
+          bookmark_id: string
+          currency: string | null
+          id: string
+          price: number
+          tracked_at: string
+        }
+        Insert: {
+          bookmark_id: string
+          currency?: string | null
+          id?: string
+          price: number
+          tracked_at?: string
+        }
+        Update: {
+          bookmark_id?: string
+          currency?: string | null
+          id?: string
+          price?: number
+          tracked_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "price_history_bookmark_id_fkey"
+            columns: ["bookmark_id"]
+            isOneToOne: false
+            referencedRelation: "bookmarks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
