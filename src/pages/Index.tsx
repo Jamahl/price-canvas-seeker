@@ -204,25 +204,27 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-6">
+    <div className="min-h-screen bg-gradient-warm">
+      <div className="container mx-auto px-6 py-8">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center justify-between mb-10 bounce-in">
           <div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-              Velora
+            <h1 className="text-4xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+              Velora ✨
             </h1>
-            <p className="text-muted-foreground mt-1">
+            <p className="text-muted-foreground mt-2 text-lg">
               Your beautiful bookmark canvas for tracking products and prices
             </p>
           </div>
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-1 bg-muted rounded-lg p-1">
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-1 bg-accent/30 rounded-full p-1 shadow-lg">
               <Button
                 variant={viewMode === "masonry" ? "default" : "ghost"}
                 size="sm"
                 onClick={() => setViewMode("masonry")}
-                className="h-8 w-8 p-0"
+                className={`h-10 w-10 p-0 rounded-full transition-all duration-300 ${
+                  viewMode === "masonry" ? "btn-playful text-primary-foreground shadow-md" : "hover:bg-accent/50"
+                }`}
               >
                 <Grid className="h-4 w-4" />
               </Button>
@@ -230,7 +232,9 @@ const Index = () => {
                 variant={viewMode === "grid" ? "default" : "ghost"}
                 size="sm"
                 onClick={() => setViewMode("grid")}
-                className="h-8 w-8 p-0"
+                className={`h-10 w-10 p-0 rounded-full transition-all duration-300 ${
+                  viewMode === "grid" ? "btn-playful text-primary-foreground shadow-md" : "hover:bg-accent/50"
+                }`}
               >
                 <Layout className="h-4 w-4" />
               </Button>

@@ -56,26 +56,26 @@ export function SearchBar({
   return (
     <div className="w-full space-y-3">
       {/* Search Input */}
-      <div className="flex gap-2">
+      <div className="flex gap-3">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
           <Input
-            placeholder="Search bookmarks..."
+            placeholder="Search bookmarks... ✨"
             value={localSearch}
             onChange={(e) => setLocalSearch(e.target.value)}
             onKeyDown={handleKeyDown}
-            className="pl-10"
+            className="pl-12 pr-4 py-3 text-base border-0 rounded-full shadow-lg search-glow transition-all duration-300 bg-gradient-warm"
           />
         </div>
-        <Button onClick={handleSearch}>Search</Button>
+        <Button onClick={handleSearch} className="btn-playful text-primary-foreground px-6 rounded-full">Search</Button>
         
         {/* Filter Popover */}
         <Popover>
           <PopoverTrigger asChild>
-            <Button variant="outline" size="icon" className="relative">
+            <Button variant="outline" size="icon" className="relative rounded-full shadow-md hover:shadow-lg transition-all duration-300">
               <Filter className="h-4 w-4" />
               {selectedTags.length > 0 && (
-                <span className="absolute -top-1 -right-1 h-4 w-4 bg-primary text-primary-foreground text-xs rounded-full flex items-center justify-center">
+                <span className="absolute -top-1 -right-1 h-5 w-5 bg-primary text-primary-foreground text-xs rounded-full flex items-center justify-center pulse-warm">
                   {selectedTags.length}
                 </span>
               )}

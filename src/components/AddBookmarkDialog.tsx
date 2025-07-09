@@ -130,7 +130,7 @@ export function AddBookmarkDialog({ onBookmarkAdded }: AddBookmarkDialogProps) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size="lg" className="bg-primary hover:bg-primary/90">
+        <Button size="lg" className="btn-playful text-primary-foreground shadow-lg hover:shadow-xl bounce-in">
           <Plus className="h-5 w-5 mr-2" />
           Add Bookmark
         </Button>
